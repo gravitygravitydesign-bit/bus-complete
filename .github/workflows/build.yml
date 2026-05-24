@@ -2,46 +2,53 @@ name: Build Flet Android APK
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: # عشان يتيح لك تشغيل البناء يدوياً في أي وقت
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+    # 1. سحب كود المشروع من الريبوزيتوري
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    # 2. إعداد الجافا (مطلوبة لبناء الأندرويد)
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
       with:
-        python-version: '3.10'
-
-    - name: Setup Java
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'zulu'
         java-version: '17'
+        distribution: 'temurin'
 
-    - name: Setup Flutter
+    # 3. إعداد الـ Python وتثبيت مكتبات مشروعك
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-python: '3.10'
+
+    - name: Install Python Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flet firebase-admin
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    # 4. تثبيت الـ Flutter SDK اللي بيحتاجها Flet للبناء
+    - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
 
-    - name: Install System Dependencies & Flet
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libgtk-3-dev libgstpage-1.0-dev libmpv-dev
-        python -m pip install --upgrade pip
-        pip install flet
-
-    - name: Build Android APK
+    # 5. تشغيل أمر بناء الـ APK من Flet
+    - name: Build APK via Flet CLI
       run: |
         flet build apk
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v3
+    # 6. رفع ملف الـ APK الناتج كـ Artifact عشان تقدر تحمله
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: Bus-Complete-APK
+        name: bus-complete-apk
         path: build/apk/*.apk
