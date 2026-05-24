@@ -18,10 +18,10 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Setup Java JDK
+    - name: Setup Java
       uses: actions/setup-java@v3
       with:
-        distribution: 'temurin'
+        distribution: 'zulu'
         java-version: '17'
 
     - name: Setup Flutter
@@ -29,7 +29,7 @@ jobs:
       with:
         channel: 'stable'
 
-    - name: Install Dependencies
+    - name: Install Flet
       run: |
         python -m pip install --upgrade pip
         pip install flet
@@ -38,7 +38,7 @@ jobs:
       run: |
         flet build apk
 
-    - name: Upload APK Artifact
+    - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
         name: Bus-Complete-APK
